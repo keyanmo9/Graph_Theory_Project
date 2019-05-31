@@ -23,7 +23,10 @@ public:
   bool visited;
   ActorNode * prev;
   string movie;
-  ActorNode(string actorName): actorName(actorName) {}
+  ActorNode(string actorName): actorName(actorName) {
+    visited = false;
+    prev = nullptr;
+  }
 
   // helper to get the current node actor name
   string getName();

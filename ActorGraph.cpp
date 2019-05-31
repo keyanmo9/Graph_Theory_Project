@@ -26,7 +26,7 @@ using namespace std;
  * Constructor of the Actor graph
  */ 
 ActorGraph::ActorGraph(void) {}
-unordered_set<ActorNode*> seen; 
+unordered_map<string, ActorNode*> seen; 
 unordered_map<string,int> seenActors;                                   
 unordered_map<string,int> seenMovies;
 int hold = -1;
@@ -91,25 +91,16 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
         ActorNode* curr = new ActorNode(actor_name);
         bool extraEdge = true;
         bool exist = false;
-
         // if not exist, create a node for it
         if (get == seenActors.end()) {
             seenActors.insert({actor_name, 1});
-            seen.insert(curr);
+            seen.insert({actor_name, curr});
         }
         else {
-          // access the already existing node
-          unordered_set<ActorNode*>::iterator t = seen.begin();
-          for(; t != seen.end(); ++t) {
-            if( (*t)->actorName == actor_name ) {
-              curr = *t;
-            }
-          }
+           curr = seen.find(actor_name)->second;
         }
        // establish a new edge
        ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], nullptr});
-       //curr->connect.push_back(newLink);       
-
        // check if a movie already be seen before
        // if no one is in the same movie
        auto getTwo = seenMovies.find(movie_title+record[2]);
@@ -120,28 +111,28 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
        }
        // if others in the same movie, add more edges between them
        else{
-         unordered_set<ActorNode*>:: iterator it = seen.begin();
+         unordered_map<string, ActorNode*>:: iterator it = seen.begin();
          while( it != seen.end() ) {
-           int getSize = (*it)->connect.size();
+           int getSize = it->second->connect.size();
            for(unsigned int i = 0; i < getSize; i++) {
              hold++;
-             if((*it)->connect[i]->edge.first == movie_title+"#@"+record[2]
-                && (*it)->actorName != curr->actorName) {
+             if(it->second->connect[i]->edge.first == movie_title+"#@"+record[2]
+                && it->second->actorName != curr->actorName) {
            // if just has one person in the same film
                // if the edge currently points to nullptr, change it
-               if((*it)->connect[hold]->edge.second == nullptr) {
-                 (*it)->connect[hold]->edge.second = curr;
+               if(it->second->connect[hold]->edge.second == nullptr) {
+                 it->second->connect[hold]->edge.second = curr;
                  hold = -1;
-                 exist = false;
-                 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], *it});
+                 
+                 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], it->second});
                  //newLink->edge.second = it->first;
                  curr->connect.push_back(newLink);
                }
                // if this is not the first collision, add more edges
                else{
                  ActorEdge* moreLink = new ActorEdge({movie_title+"#@"+record[2], curr});
-                 (*it)->connect.push_back(moreLink);
-  		 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], *it});
+                 it->second->connect.push_back(moreLink);
+  		 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], it->second});
                  //newLink->edge.second = it->first;
                  curr->connect.push_back(newLink);
               }
@@ -149,13 +140,9 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
           }
           hold = -1;
           it++;
-          //exist = false;
           }
         }
-    //delete(curr); 
     }
-
-
     if (!infile.eof()) {
         cerr << "Failed to read " << in_filename << "!\n";
         return false;
@@ -168,48 +155,31 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
 string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
   ActorNode* left = nullptr;
   ActorNode* right = nullptr;
-  // find the actual nodes in the graph
-  /*
-  for(auto it = seen.begin(); it != seen.end(); ++it) {  
-    if( it->first->actorName == one->actorName ) {                          
-      left = it->first;
-      cout<<left->actorName<<endl;
+  
+  unordered_map<string, ActorNode*>::iterator finding;
+  if(seen.find(one->actorName)!=seen.end()) {
+    finding = seen.find(one->actorName);
+    left = finding->second;
+  } else {
+      return "";
     }
-    if( it->first->actorName == two->actorName ) {
-      right = it->first;
-cout<<right->actorName<<endl;
-    }                                                                   
-  }
-  */
-
-  unordered_set<ActorNode*>::iterator finding;
-  finding = seen.find(one);
-  left = *finding;
-  finding = seen.find(two);
-  right = *finding;  
-
-/*
-  unordered_set<ActorNode*>::iterator finding = seen.begin();                 
-  for(; finding != seen.end(); ++finding) {        
-    if( (*finding)->actorName == one->actorName ) {   
-      left = *finding;                             
-    }     
-    if( (*finding)->actorName == two->actorName ) {
-      right = *finding;
-    }                                                          
-  }
-*/
-
+  if(seen.find(two->actorName)!=seen.end()) {
+    finding = seen.find(two->actorName);
+    right = finding->second;  
+  } else {
+      return "";
+    }
 
   if(left == nullptr || right == nullptr) {
     return "";
   }
-  // set visited to be false and prev to -1 for all nodes
-  unordered_set<ActorNode*>::iterator all;
-  for(all = seen.begin(); all!=seen.end(); ++all) {
-    (*all)->visited = false;
-    (*all)->prev = nullptr;
+
+  unordered_map<string, ActorNode*>::iterator all;
+  for(all = seen.begin(); all != seen.end(); ++all) {
+    all->second->visited = false;
+    all->second->prev = nullptr;
   }
+
   // make a queue
   queue<ActorNode*> myQueue;
   myQueue.push(left);
