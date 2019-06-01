@@ -41,7 +41,7 @@ public:
   bool compareNode(ActorNode* other);
  
   // Destructor
-  ~ActorNode();
+//  ~ActorNode();
 };
 
 #endif

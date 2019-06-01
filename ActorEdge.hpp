@@ -22,7 +22,7 @@ public:
   pair<string, ActorNode*> edge;
   
   ActorEdge(string movieName, ActorNode* nextActor): edge({movieName, nextActor}){}
-  ~ActorEdge();
+ //  ~ActorEdge();
 };
 
 #endif

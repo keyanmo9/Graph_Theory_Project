@@ -40,11 +40,15 @@ int main(int argc, char ** argv) {
     ActorNode* two = new ActorNode(secondHalf);
 cout<<"Computing path for ("+firstHalf+") -> ("+secondHalf+")"<<endl; 
     string result = graph.bfs(one, two);
-    
+  
+    delete(one);
+    delete(two);
+  
     out << result <<endl;
   }
 
   out.close();
   in.close();
+
   return 0;
  }

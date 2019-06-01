@@ -13,7 +13,8 @@
 #include <string>
 #include <vector>
 #include "ActorGraph.hpp"
-#include "ActorNode.hpp" 
+#include "ActorNode.hpp"
+#include "ActorEdge.hpp"
 #include <unordered_set>
 #include <unordered_map>
 #include <queue>
@@ -28,7 +29,7 @@ using namespace std;
 ActorGraph::ActorGraph(void) {}
 unordered_map<string, ActorNode*> seen; 
 unordered_map<string,int> seenActors;                                   
-unordered_map<string,int> seenMovies;
+unordered_map<string, vector<ActorNode*>> seenMovies;
 int hold = -1;
 
 /** You can modify this method definition as you wish
@@ -89,8 +90,7 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
         auto get = seenActors.find(actor_name);
 
         ActorNode* curr = new ActorNode(actor_name);
-        bool extraEdge = true;
-        bool exist = false;
+
         // if not exist, create a node for it
         if (get == seenActors.end()) {
             seenActors.insert({actor_name, 1});
@@ -99,6 +99,9 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
         else {
            curr = seen.find(actor_name)->second;
         }
+
+        //seenMovies.insert({movie_title + record[2], curr});
+
        // establish a new edge
        ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], nullptr});
        // check if a movie already be seen before
@@ -107,41 +110,52 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
        if(getTwo == seenMovies.end()){
          // establish a relationship and point to nullptr
 	 curr->connect.push_back(newLink);
-         seenMovies.insert({movie_title + record[2], 1});
+         vector<ActorNode*> added;
+         added.push_back(curr);
+         seenMovies.insert({movie_title + record[2], added});
        }
+       
        // if others in the same movie, add more edges between them
        else{
-         unordered_map<string, ActorNode*>:: iterator it = seen.begin();
-         while( it != seen.end() ) {
-           int getSize = it->second->connect.size();
+         //seenMovies.find(movie_title + record[2])->second.push_back(curr);
+         //unordered_map<string, ActorNode*>:: iterator it = seen.begin();
+         //while( it != seen.end() ) {
+           //int getSize = it->second->connect.size();
+         vector<ActorNode*> list = seenMovies.find(movie_title+record[2])->second;
+         for(unsigned int k = 0; k < list.size(); k++) {
+           int getSize = list[k]->connect.size();
+           ActorNode* found = list[k];
            for(unsigned int i = 0; i < getSize; i++) {
              hold++;
-             if(it->second->connect[i]->edge.first == movie_title+"#@"+record[2]
-                && it->second->actorName != curr->actorName) {
-           // if just has one person in the same film
+             ActorNode* real = seen.find(list[k]->actorName)->second;
+             if(real->connect[i]->edge.first == movie_title+"#@"+record[2]
+                && real->actorName != curr->actorName) {
                // if the edge currently points to nullptr, change it
-               if(it->second->connect[hold]->edge.second == nullptr) {
-                 it->second->connect[hold]->edge.second = curr;
+               if(real->connect[hold]->edge.second == nullptr) {
+                 real->connect[hold]->edge.second = curr;
                  hold = -1;
                  
-                 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], it->second});
-                 //newLink->edge.second = it->first;
+                 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], real});
                  curr->connect.push_back(newLink);
                }
                // if this is not the first collision, add more edges
                else{
                  ActorEdge* moreLink = new ActorEdge({movie_title+"#@"+record[2], curr});
-                 it->second->connect.push_back(moreLink);
-  		 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], it->second});
-                 //newLink->edge.second = it->first;
+                 real->connect.push_back(moreLink);
+  		 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], real});
                  curr->connect.push_back(newLink);
+                 delete(moreLink);
               }
             }
           }
+        
           hold = -1;
-          it++;
-          }
+         }
+         // it++;
+         // }
         }
+      //delete (curr);
+      //delete (newLink);
     }
     if (!infile.eof()) {
         cerr << "Failed to read " << in_filename << "!\n";
@@ -180,6 +194,7 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
     all->second->prev = nullptr;
   }
 
+
   // make a queue
   queue<ActorNode*> myQueue;
   myQueue.push(left);
@@ -201,7 +216,8 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
     if(collect.size()==0) {
       string empty = "";
       return empty;
-    }
+    }    
+
     vector<ActorEdge*>::iterator allEdge;
     // for each of current node's neighbors
     //for( allEdge = collect.begin(); allEdge != collect.end(); ++allEdge ) {
@@ -228,5 +244,8 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
     output.insert(0, "(" + trace->prev->actorName + ")");
     trace = trace->prev;
   }
+  
+  //reset visited to false and prev to nullptr;  
+
   return output;
 }

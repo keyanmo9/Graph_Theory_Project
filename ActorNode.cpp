@@ -25,4 +25,4 @@ bool ActorNode::compareNode(ActorNode* other) {
   return this.getName() == other.getName();
 }
 
-ActorNode::~ActorNode() {};
+//ActorNode::~ActorNode() {};
