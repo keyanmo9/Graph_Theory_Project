@@ -97,7 +97,7 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
             seen.insert({actor_name, curr});
         }
         else {
-           curr = seen.find(actor_name)->second;
+           curr = (seen.find(actor_name))->second;
         }
 
         //seenMovies.insert({movie_title + record[2], curr});
@@ -117,19 +117,19 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
        
        // if others in the same movie, add more edges between them
        else{
-         //seenMovies.find(movie_title + record[2])->second.push_back(curr);
+         (seenMovies.find(movie_title + record[2]))->second.push_back(curr);
          //unordered_map<string, ActorNode*>:: iterator it = seen.begin();
          //while( it != seen.end() ) {
            //int getSize = it->second->connect.size();
-         vector<ActorNode*> list = seenMovies.find(movie_title+record[2])->second;
+         vector<ActorNode*> list = (seenMovies.find(movie_title+record[2]))->second;
          for(unsigned int k = 0; k < list.size(); k++) {
            int getSize = list[k]->connect.size();
            ActorNode* found = list[k];
            for(unsigned int i = 0; i < getSize; i++) {
              hold++;
              ActorNode* real = seen.find(list[k]->actorName)->second;
-             if(real->connect[i]->edge.first == movie_title+"#@"+record[2]
-                && real->actorName != curr->actorName) {
+           //  if(real->connect[i]->edge.first == movie_title+"#@"+record[2]
+           //     && real->actorName != curr->actorName) {
                // if the edge currently points to nullptr, change it
                if(real->connect[hold]->edge.second == nullptr) {
                  real->connect[hold]->edge.second = curr;
@@ -144,9 +144,9 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
                  real->connect.push_back(moreLink);
   		 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], real});
                  curr->connect.push_back(newLink);
-                 delete(moreLink);
+                 //delete(moreLink);
               }
-            }
+          //  }
           }
         
           hold = -1;
