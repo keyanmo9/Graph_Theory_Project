@@ -39,7 +39,9 @@ int main(int argc, char ** argv) {
     ActorNode* one = new ActorNode(firstHalf);
     ActorNode* two = new ActorNode(secondHalf);
 cout<<"Computing path for ("+firstHalf+") -> ("+secondHalf+")"<<endl; 
+    vector<ActorNode*> recover;
     string result = graph.bfs(one, two);
+
   
     delete(one);
     delete(two);

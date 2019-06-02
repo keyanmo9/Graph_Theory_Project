@@ -146,7 +146,6 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
                  real->connect.push_back(moreLink);
   		 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], real});
                  curr->connect.push_back(newLink);
-                 //delete(moreLink);
               }
             }
           }
@@ -156,8 +155,6 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
          // it++;
          // }
         }
-      //delete (curr);
-      //delete (newLink);
     }
     if (!infile.eof()) {
         cerr << "Failed to read " << in_filename << "!\n";

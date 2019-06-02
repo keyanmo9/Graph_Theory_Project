@@ -19,6 +19,13 @@
 
 using namespace std;
 
+class cmpFunc {
+public:
+  bool operator()(pair<int, ActorNode*> node1, pair<int, ActorNode*> node2) {
+     return node1.first > node2.first;
+  }
+};
+ 
 /**
  * TODO: add class header
  */
@@ -49,7 +56,8 @@ public:
     bool loadFromFile(const char* in_filename, bool use_weighted_edges);
 
     string bfs(ActorNode* one, ActorNode* two);
-   
+    
+    string dijkstra(ActorNode* one, ActorNode* two);   
 };
 
 

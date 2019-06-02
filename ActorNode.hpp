@@ -23,9 +23,13 @@ public:
   bool visited;
   ActorNode * prev;
   string movie;
+  
+  int distance;
+ 
   ActorNode(string actorName): actorName(actorName) {
     visited = false;
     prev = nullptr;
+    //connect = new vector<ActorEdge*>;
   }
 
   // helper to get the current node actor name
@@ -41,7 +45,9 @@ public:
   bool compareNode(ActorNode* other);
  
   // Destructor
-//  ~ActorNode();
+  //~ActorNode() {
+    //delete connect;
+ // }
 };
 
 #endif
