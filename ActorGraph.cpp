@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <climits>
 #include "ActorGraph.hpp"
 #include "ActorNode.hpp"
 #include "ActorEdge.hpp"
@@ -31,6 +32,7 @@ unordered_map<string, ActorNode*> seen;
 unordered_map<string,int> seenActors;                                   
 unordered_map<string, vector<ActorNode*>> seenMovies;
 int hold = -1;
+vector<ActorNode*> recover;
 
 /** You can modify this method definition as you wish
  *
@@ -128,8 +130,8 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
            for(unsigned int i = 0; i < getSize; i++) {
              hold++;
              ActorNode* real = seen.find(list[k]->actorName)->second;
-           //  if(real->connect[i]->edge.first == movie_title+"#@"+record[2]
-           //     && real->actorName != curr->actorName) {
+             if(real->connect[i]->edge.first == movie_title+"#@"+record[2]
+                && real->actorName != curr->actorName) {
                // if the edge currently points to nullptr, change it
                if(real->connect[hold]->edge.second == nullptr) {
                  real->connect[hold]->edge.second = curr;
@@ -146,7 +148,7 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
                  curr->connect.push_back(newLink);
                  //delete(moreLink);
               }
-          //  }
+            }
           }
         
           hold = -1;
@@ -187,18 +189,28 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
   if(left == nullptr || right == nullptr) {
     return "";
   }
-
+/*
   unordered_map<string, ActorNode*>::iterator all;
   for(all = seen.begin(); all != seen.end(); ++all) {
     all->second->visited = false;
     all->second->prev = nullptr;
   }
+*/
+
+  // update vector recover, set all nodes to be unvisited and prev to be nullptr
+  for( unsigned int u = 0; u < recover.size(); u++) {
+    recover[u]->visited = false;
+    recover[u]->prev = nullptr;
+  }
+  recover.clear();
 
 
   // make a queue
   queue<ActorNode*> myQueue;
   myQueue.push(left);
   left->visited = true;
+  recover.push_back(left);
+
 
   // while queue is not empty, keep pushing
   while( !myQueue.empty() ) {
@@ -213,6 +225,8 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
 
     // otherwise, get the all connections in the current node
     vector<ActorEdge*> collect = now->connect;
+
+    //collect = now->connect;
     if(collect.size()==0) {
       string empty = "";
       return empty;
@@ -222,16 +236,24 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
     // for each of current node's neighbors
     //for( allEdge = collect.begin(); allEdge != collect.end(); ++allEdge ) {
       for(unsigned int j = 0; j < collect.size(); j++) {
-      ActorEdge* each = collect[j];
+        ActorEdge* each = collect[j];
       // if not visited
       if( each->edge.second != nullptr && each->edge.second->visited == false) {
         each->edge.second->visited = true;
         each->edge.second->prev = now;
         each->edge.second->movie = each->edge.first;
+        recover.push_back(each->edge.second);
         myQueue.push(each->edge.second);
       }
     }
   }
+
+  // recovering
+//  for(unsigned int u = 0; u < recover.size(); u++) {
+//    recover[u]->edge.second->visited = false;
+//    recover[u]->edge.second->prev = nullptr;
+//  }
+
   // make a string to output
   string output = "";
   string movieName = "";
@@ -247,5 +269,78 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
   
   //reset visited to false and prev to nullptr;  
 
+  return output;
+}
+
+string ActorGraph::dijkstra(ActorNode* one, ActorNode* two) {
+  ActorNode* left = nullptr;                                                    
+  ActorNode* right = nullptr;
+
+  unordered_map<string, ActorNode*>::iterator find1 = seen.find(one->actorName);
+  if(find1 != seen.end()) {
+    left = find1->second;
+  } else {
+      return "";
+    }
+  unordered_map<string, ActorNode*>::iterator find2 = seen.find(two->actorName);
+  if(find2 != seen.end()) {
+    right = find2->second;
+  } else {
+      return "";
+    }
+ 
+  // Reset all the nodes 
+  unordered_map<string, ActorNode*>::iterator all;
+  for(all = seen.begin(); all != seen.end(); ++all) {
+    all->second->visited = false;
+    all->second->prev = nullptr;
+    all->second->distance = INT_MAX;
+  }
+
+  // Initialize a priority queue
+  priority_queue<pair<int,ActorNode*>, vector<pair<int,ActorNode*>>,cmpFunc>
+		myQueue;
+
+  myQueue.push({0,left});
+  left->distance = 0;
+  
+  // While myQueue is not empty, continue pushing
+  while(!myQueue.empty()){
+    pair<int, ActorNode*> curr = myQueue.top();
+    myQueue.pop();
+ 
+    // If curr is not visited 
+    if(curr.second->visited == false){
+      curr.second->visited = true;
+      vector<ActorEdge*> collect = curr.second->connect;
+      // for each of curr's neighbors
+      for(vector<ActorEdge*>::iterator all = collect.begin(); 
+          all != collect.end(); ++all) {
+        ActorEdge * each = *all;
+        // distance to w through v, c = v.dist + edgeWeight(v, w)
+        int dist = curr.second->distance + (1 + (2019) );
+        // if c is less than w.dist, set w.prev = v and w.dist = c
+        if(dist < each->edge.second->distance) {
+          each->edge.second->distance = dist;
+          each->edge.second->prev = curr.second;
+          // enqueue into the queue
+          myQueue.push({dist, each->edge.second});
+        }
+      }
+    }
+  }
+  
+  // make a string to output
+  string output = "";
+  string movieName = "";
+  
+  output = "(" + right->actorName + ")";
+  ActorNode* trace = right;
+
+  while( trace != left ) {
+    output.insert(0, "--[" + trace->movie + "]-->");
+    output.insert(0, "(" + trace->prev->actorName + ")");
+    trace = trace->prev;
+  }
   return output;
 }
