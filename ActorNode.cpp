@@ -2,6 +2,7 @@
  * Filename: ActorNode.cpp
  * Author: Keyan Mo, Luting Zhang
  * UserId: cs100sp19ed, cs100sp19ci
+ * Description: This file creates implementations for ActorNode.hpp 
  * Date: 2019/05/27
  */
 
@@ -24,5 +25,3 @@ vector<ActorEdge*> ActorNode::getConnect() {
 bool ActorNode::compareNode(ActorNode* other) {
   return this.getName() == other.getName();
 }
-
-//ActorNode::~ActorNode() {};

@@ -7,4 +7,3 @@
 
 #include "ActorEdge.hpp"
 
-//ActorEdge::~ActorEdge() {};  

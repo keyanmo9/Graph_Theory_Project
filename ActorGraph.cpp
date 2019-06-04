@@ -27,12 +27,27 @@ using namespace std;
 /**
  * Constructor of the Actor graph
  */ 
-ActorGraph::ActorGraph(void) {}
+//ActorGraph::ActorGraph(void) {}
+/*ActorGraph::~ActorGraph() {
+  deleteAll();
+}*/
+
+void ActorGraph::deleteAll() {
+    for(auto i : seen) {           
+      delete i.second;                                                            
+    }                                                                             
+    for(auto i : seenMovies) {         
+      delete i.second;                                                            
+    }   
+
+}
+
+/*  
 unordered_map<string, ActorNode*> seen; 
-unordered_map<string,int> seenActors;                                   
-unordered_map<string, vector<ActorNode*>> seenMovies;
+unordered_map<string, ActorEdge*> seenMovies;
+*/
 int hold = -1;
-vector<ActorNode*> recover;
+//vector<ActorNode*> recover;
 
 /** You can modify this method definition as you wish
  *
@@ -89,72 +104,35 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
         // TODO: we have an actor/movie relationship, now what?
         
         // check if actors already exist 
-        auto get = seenActors.find(actor_name);
+        auto get = seen.find(actor_name);
 
-        ActorNode* curr = new ActorNode(actor_name);
+        ActorNode* curr;
 
         // if not exist, create a node for it
-        if (get == seenActors.end()) {
-            seenActors.insert({actor_name, 1});
+        if (get == seen.end()) {
+            curr = new ActorNode(actor_name);
             seen.insert({actor_name, curr});
         }
         else {
-           curr = (seen.find(actor_name))->second;
+           curr = seen.find(actor_name)->second;
         }
-
-        //seenMovies.insert({movie_title + record[2], curr});
 
        // establish a new edge
-       ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], nullptr});
+       ActorEdge* newLink;
        // check if a movie already be seen before
-       // if no one is in the same movie
-       auto getTwo = seenMovies.find(movie_title+record[2]);
+       auto getTwo = seenMovies.find(movie_title + "#@" + record[2]);
        if(getTwo == seenMovies.end()){
-         // establish a relationship and point to nullptr
-	 curr->connect.push_back(newLink);
-         vector<ActorNode*> added;
-         added.push_back(curr);
-         seenMovies.insert({movie_title + record[2], added});
+         newLink = new ActorEdge(movie_title+"#@"+record[2], movie_year);
+         seenMovies.insert({movie_title + "#@" + record[2], newLink});
+       }
+       else {
+         newLink = seenMovies[movie_title + "#@" + record[2]];
        }
        
-       // if others in the same movie, add more edges between them
-       else{
-         (seenMovies.find(movie_title + record[2]))->second.push_back(curr);
-         //unordered_map<string, ActorNode*>:: iterator it = seen.begin();
-         //while( it != seen.end() ) {
-           //int getSize = it->second->connect.size();
-         vector<ActorNode*> list = (seenMovies.find(movie_title+record[2]))->second;
-         for(unsigned int k = 0; k < list.size(); k++) {
-           int getSize = list[k]->connect.size();
-           ActorNode* found = list[k];
-           for(unsigned int i = 0; i < getSize; i++) {
-             hold++;
-             ActorNode* real = seen.find(list[k]->actorName)->second;
-             if(real->connect[i]->edge.first == movie_title+"#@"+record[2]
-                && real->actorName != curr->actorName) {
-               // if the edge currently points to nullptr, change it
-               if(real->connect[hold]->edge.second == nullptr) {
-                 real->connect[hold]->edge.second = curr;
-                 hold = -1;
-                 
-                 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], real});
-                 curr->connect.push_back(newLink);
-               }
-               // if this is not the first collision, add more edges
-               else{
-                 ActorEdge* moreLink = new ActorEdge({movie_title+"#@"+record[2], curr});
-                 real->connect.push_back(moreLink);
-  		 ActorEdge* newLink = new ActorEdge({movie_title+"#@"+record[2], real});
-                 curr->connect.push_back(newLink);
-              }
-            }
-          }
-        
-          hold = -1;
-         }
-         // it++;
-         // }
-        }
+       // make the connection
+       curr->connect.push_back(newLink);
+       newLink->actors.push_back(curr);
+       
     }
     if (!infile.eof()) {
         cerr << "Failed to read " << in_filename << "!\n";
@@ -186,13 +164,6 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
   if(left == nullptr || right == nullptr) {
     return "";
   }
-/*
-  unordered_map<string, ActorNode*>::iterator all;
-  for(all = seen.begin(); all != seen.end(); ++all) {
-    all->second->visited = false;
-    all->second->prev = nullptr;
-  }
-*/
 
   // update vector recover, set all nodes to be unvisited and prev to be nullptr
   for( unsigned int u = 0; u < recover.size(); u++) {
@@ -230,26 +201,20 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
     }    
 
     vector<ActorEdge*>::iterator allEdge;
-    // for each of current node's neighbors
-    //for( allEdge = collect.begin(); allEdge != collect.end(); ++allEdge ) {
-      for(unsigned int j = 0; j < collect.size(); j++) {
+    for(unsigned int j = 0; j < collect.size(); j++) {
         ActorEdge* each = collect[j];
       // if not visited
-      if( each->edge.second != nullptr && each->edge.second->visited == false) {
-        each->edge.second->visited = true;
-        each->edge.second->prev = now;
-        each->edge.second->movie = each->edge.first;
-        recover.push_back(each->edge.second);
-        myQueue.push(each->edge.second);
+      for(unsigned int m = 0; m < each->actors.size(); m++) {
+        if( each->actors[m]->visited == false) {
+          each->actors[m]->visited = true;
+          each->actors[m]->prev = now;
+          each->actors[m]->movie = each->movieName;
+          recover.push_back(each->actors[m]);
+          myQueue.push(each->actors[m]);
+        }
       }
     }
   }
-
-  // recovering
-//  for(unsigned int u = 0; u < recover.size(); u++) {
-//    recover[u]->edge.second->visited = false;
-//    recover[u]->edge.second->prev = nullptr;
-//  }
 
   // make a string to output
   string output = "";
@@ -315,14 +280,17 @@ string ActorGraph::dijkstra(ActorNode* one, ActorNode* two) {
           all != collect.end(); ++all) {
         ActorEdge * each = *all;
         // distance to w through v, c = v.dist + edgeWeight(v, w)
-        int dist = curr.second->distance + (1 + (2019) );
+        int dist = curr.second->distance + (1 + (2019 - each->year) );
         // if c is less than w.dist, set w.prev = v and w.dist = c
-        if(dist < each->edge.second->distance) {
-          each->edge.second->distance = dist;
-          each->edge.second->prev = curr.second;
+        for(unsigned int m = 0; m < each->actors.size(); m++) {
+        if(dist < each->actors[m]->distance) {
+          each->actors[m]->distance = dist;
+          each->actors[m]->prev = curr.second;
+          each->actors[m]->movie = each->movieName;
           // enqueue into the queue
-          myQueue.push({dist, each->edge.second});
+          myQueue.push({dist, each->actors[m]});
         }
+      }
       }
     }
   }
@@ -340,4 +308,179 @@ string ActorGraph::dijkstra(ActorNode* one, ActorNode* two) {
     trace = trace->prev;
   }
   return output;
+}
+
+bool ActorGraph::loadFromFileTwo(const char* in_filename) {
+  // Initialize the file stream 
+  ifstream infile(in_filename);                                                
+  bool have_header = false;
+
+  // keep reading lines until the end of file is reached
+  while(infile) {
+    string s;
+    // get the next line
+    if(!getline(infile, s)) break;
+      if(!have_header) {
+        //skip the header
+        have_header = true;
+        continue;
+      }
+      istringstream ss(s);
+        vector<string> record;
+        while(ss) {
+          string next;
+          // get the next string before hitting a tab character and put it in 'next'
+          if(!getline(ss, next, '\t')) break;
+            record.push_back(next);
+        }
+        if( record.size() != 3 ) {
+          // we should have exactly 3 columns
+          continue;
+        }
+
+        string actor_name(record[0]);                                           
+        string movie_title(record[1]);                                          
+        int movie_year = stoi(record[2]);
+
+        // check if actors already exist
+        auto get = seen.find(actor_name);                                       
+        ActorNode* curr;
+        // if not exist, create a node for it
+        if (get == seen.end()) {
+            curr = new ActorNode(actor_name); 
+            //curr->prev = curr;                    
+            seen.insert({actor_name, curr});                                   
+            vactors.push_back(curr);
+        }                                                                       
+        else {                                                                  
+           curr = seen.find(actor_name)->second;                                
+        }
+
+        // establish a new edge
+        ActorEdge* newLink;
+       // check if a movie already be seen before
+        auto getTwo = seenMovies.find(movie_title + "#@" + record[2]);          
+       if(getTwo == seenMovies.end()){                                          
+         newLink = new ActorEdge(movie_title+"#@"+record[2], movie_year);
+         seenMovies.insert({movie_title + "#@" + record[2], newLink});
+         pq.push(newLink);          
+       }                                                                        
+       else {                                                                   
+         newLink = seenMovies[movie_title + "#@" + record[2]];                  
+       }                                                                        
+       // make the connection
+       curr->connect.push_back(newLink);                                        
+       newLink->actors.push_back(curr); 
+                                            
+  }
+                                                                         
+      if (!infile.eof()) {                                                      
+        cerr << "Failed to read " << in_filename << "!\n";                      
+        return false;                                                           
+    }                                                                           
+    infile.close();                                                             
+                                                                                
+    return true;                                                                
+}
+                                   
+string ActorGraph::buildSpinning() {
+  unsigned int numEdges = 0;
+  unsigned int weight = 0;
+  string result;
+  while(numEdges < seen.size() - 1){
+cout<<numEdges<<endl;
+cout<<seen.size()<<endl;
+    int size = 1;
+    // get the edge that has smallest weight
+    ActorEdge* least = pq.top();
+cout<<"movie is now"+least->movieName<<endl;
+    pq.pop();
+
+    // randomly choose one actorNode, and make edge with all other actorNodes
+    ActorNode* single = least->actors[0];
+    //single->prev = single;
+    single->isRoot = true;
+    // case that just has one actor in this movie, go to next edge
+    if(least->actors.size()<=1) continue;
+    // continue making edges
+    for(unsigned int i = 1; i < least->actors.size(); i++) {
+      ActorNode* root1 = find(single);
+      ActorNode* root2 = find(least->actors[i]);
+      if(root1 != root2 && numEdges < seen.size() - 1) {
+        size++;
+        //least->actors[i]->prev = single;
+
+        result += '\n';
+        result += "(" + single->actorName + ")<--[" + least->movieName + 
+                  "]-->(" + least->actors[i]->actorName + ")";
+        setUnion(root1, root2);
+        numEdges++;
+        weight += 1+(2019-least->year);
+      }
+    }
+    single->size = size;
+    single->isRoot = false;
+  }
+ for (ActorNode* act: vactors) {
+    cout<<act->actorName<<endl;
+    if (act->prev)
+    cout<<act->prev->actorName<<endl<<endl;
+ }
+  string numNode = to_string(seen.size());
+  string numEdge = to_string(numEdges);
+  string numWeight = to_string(weight);
+  result += '\n';
+  result += "#NODE CONNECTED: " + numNode;
+  result += '\n';
+  result += "#EDGE CHOSEN: " + numEdge;
+  result += '\n';
+  result += "TOTAL EDGE WEIGHTS: " +  numWeight;
+  return result;
+}
+
+ActorNode* ActorGraph::find(ActorNode* node) {
+//cout<<"inside is: "+node->prev->actorName<<endl;
+//cout<<"inside node is: "+node->actorName<<endl;
+  //ActorNode* real = seen.find(node->actorName)->second;
+  if(node->prev == nullptr) {
+    return node;
+  }
+  //if(real->isRoot) {
+  //  return real;
+  //}
+  if(node->prev) {
+    node->prev = find(node->prev);
+  }
+  return node->prev;
+}
+
+void ActorGraph::setUnion(ActorNode* node1, ActorNode* node2) {
+
+  while(node1->prev != nullptr) {
+    node1 = node1->prev;
+  } 
+  while(node2->prev != nullptr) {
+    node2 = node2->prev;
+  }
+  if(node1->size < node2->size) {
+    node1->prev = node2;
+    node2->size = node2->size + node1->size;
+  }else{
+    node2->prev = node1;
+    node1->size = node1->size + node2->size;
+ }
+
+/*
+ if(find(node1) == find(node2)) {
+  return;
+ } 
+ if(find(node1) == nullptr || find(node2) == nullptr) {
+  return;
+ } 
+ 
+ ActorNode* tmp1 = find(node1);
+ ActorNode* tmp2 = find(node2);
+ 
+ if(tmp1->chil 
+*/ 
 }

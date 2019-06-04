@@ -14,14 +14,14 @@ else
     LDFLAGS += -g
 endif
 
-all: pathfinder
+all: pathfinder movietraveler
 
 
 
 # include what ever source code *.hpp files pathfinder relies on (these are merely the ones that were used in the solution)
 
 pathfinder: ActorGraph.o
-
+movietraveler: ActorGraph.o
 
 
 # include what ever source code *.hpp files ActorGraph relies on (these are merely the ones that were used in the solution)
@@ -33,4 +33,4 @@ ActorGraph.o: ActorNode.hpp ActorEdge.hpp ActorGraph.hpp
 
 clean:
 	rm -f pathfinder *.o core*
-
+	rm -f movietraveler *.o core*

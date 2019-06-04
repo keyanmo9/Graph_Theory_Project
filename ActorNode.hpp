@@ -2,6 +2,7 @@
  * Filename: ActorNode.hpp
  * Author: Keyan Mo, Luting Zhang
  * Userid: cs100sp19ed, cs100sp19ci
+ * DEscription: This file creates the actor node.
  * Date: 2019/05/27
  */
 
@@ -23,13 +24,16 @@ public:
   bool visited;
   ActorNode * prev;
   string movie;
+  int size;
+  bool isRoot;
   
   int distance;
  
   ActorNode(string actorName): actorName(actorName) {
     visited = false;
     prev = nullptr;
-    //connect = new vector<ActorEdge*>;
+    size = 0;
+    isRoot = false;
   }
 
   // helper to get the current node actor name
@@ -43,11 +47,6 @@ public:
  
   // helper to compare actors' names
   bool compareNode(ActorNode* other);
- 
-  // Destructor
-  //~ActorNode() {
-    //delete connect;
- // }
 };
 
 #endif

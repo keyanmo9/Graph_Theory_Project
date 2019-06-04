@@ -14,6 +14,8 @@
 
 #include <iostream>
 #include "ActorNode.hpp"
+#include <unordered_map>
+#include <queue>
 
 // Maybe include some data structures here
 
@@ -25,24 +27,40 @@ public:
      return node1.first > node2.first;
   }
 };
+
+class cmp {
+public:
+  bool operator()(ActorEdge* first, ActorEdge* second) {
+    return (1+(2019-first->year)) > (1+(2019-second->year));
+  }
+};
  
 /**
  * TODO: add class header
  */
 class ActorGraph {
 protected:
-  
+    
     // Maybe add class data structure(s) here
 
 public:
-
+    
+    unordered_map<string, ActorNode*> seen;
+    unordered_map<string, ActorEdge*> seenMovies;
+    vector<ActorNode*> recover;
+    priority_queue<ActorEdge*, vector<ActorEdge*>, cmp> pq;
+    vector<ActorNode*> vactors;
     /**
      * Constuctor of the Actor graph
      */
-    ActorGraph(void);
+    ActorGraph(void){};
 
     // Maybe add some more methods here
-  
+    ~ActorGraph(void) {
+      deleteAll();
+    }
+
+    void deleteAll();
     /** You can modify this method definition as you wish
      *
      * Load the graph from a tab-delimited file of actor->movie relationships.
@@ -54,6 +72,14 @@ public:
      * return true if file was loaded sucessfully, false otherwise
      */
     bool loadFromFile(const char* in_filename, bool use_weighted_edges);
+
+    bool loadFromFileTwo(const char* in_filename);
+    
+    string buildSpinning();
+    
+    ActorNode* find(ActorNode* node);
+ 
+    void setUnion(ActorNode* node1, ActorNode* node2);
 
     string bfs(ActorNode* one, ActorNode* two);
     
