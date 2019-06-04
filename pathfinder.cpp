@@ -18,8 +18,14 @@ const int FOUR = 4;
 const int THREE = 3;
 const int TWO = 2;
 
-int main(int argc, char ** argv) {
-
+/*
+ * Name: main                                                                   
+ * Description: this is a main driver to find the paths for both unweighted
+ * 		and weighted graphs.
+ * Parameters: argc - number of argunments                                      
+ *    	       argv - list of arguments input                                   
+ */
+int main(int argc, char ** argv) {  
   // check if 4 arguments entered
   if( argc != ARGC_NUM ) {
     cerr << argv[0] 

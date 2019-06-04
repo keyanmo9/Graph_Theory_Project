@@ -39,6 +39,23 @@
   
    The runtime of doing so is still O(|V| + |E|).
 
-3. 
+3. In order to further verify the claim of "Six Degrees of Kevin Bacon", 
+that is the path that contains no more than 6 edges, we can do BFS.
    
+   Below are the steps:
+   BFS(Node, S):
+     Initialize queue
+     Initialize all vertices as not visited
+     Add (0,S) to the queue
+     while queue is not empty:
+       dequeue (dist, curr) from the front of the queue
+       set curr as visited
+       for each of curr's neighbors, m
+         if m is not visited
+   	    push (dist+1, curr) to the queue
+            if dist+1 is larger than 6
+              return false
+     return true
+
+   The runtime of doing this is still O(|V| + |E|).
      

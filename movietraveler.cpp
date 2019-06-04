@@ -21,6 +21,13 @@ using namespace std;
 const int ARGC_NUM = 3;
 const int TWO = 2;
 
+/*
+ * Name: main
+ * Description: this is a main driver to build spinning tree
+ *              and output its all edges information
+ * parameters: argc - number of argunments
+ *             argv - list of arguments input
+ */ 
 int main(int argc, char ** argv) {
   // Store command lines
   char * program_name = argv[0];

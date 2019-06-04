@@ -14,9 +14,8 @@
 using namespace std;
 
 /**
- * This class help creates actor nodes
+ * This class help creates actor nodes.
  */
-
 class ActorNode {
 public:
   string actorName;

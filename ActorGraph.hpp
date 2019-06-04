@@ -21,6 +21,9 @@
 
 using namespace std;
 
+/*
+ * This class is a compare function that used 
+ */
 class cmpFunc {
 public:
   bool operator()(pair<int, ActorNode*> node1, pair<int, ActorNode*> node2) {
@@ -28,6 +31,9 @@ public:
   }
 };
 
+/*
+ * This class is a compare function that is used to initialize a priotity queue
+ */
 class cmp {
 public:
   bool operator()(ActorEdge* first, ActorEdge* second) {
@@ -36,7 +42,8 @@ public:
 };
  
 /**
- * TODO: add class header
+ * This class is a main driver to help find paths between actors using
+ * different methods, such as bfs, dijkstra and minimum spinning tree
  */
 class ActorGraph {
 protected:
@@ -55,11 +62,17 @@ public:
      */
     ActorGraph(void){};
 
-    // Maybe add some more methods here
+    // Destructor
     ~ActorGraph(void) {
       deleteAll();
     }
 
+    /*
+     * Name: deleteAll
+     * Description: this method is used to delete all nodes and edges
+     * Parameter: none
+     * Return: void
+     */   
     void deleteAll();
     /** You can modify this method definition as you wish
      *
@@ -73,16 +86,61 @@ public:
      */
     bool loadFromFile(const char* in_filename, bool use_weighted_edges);
 
+    /*
+     * Name: loadFromFileTwo
+     * Description: load actors, movies and years information from file and
+     *              also record the edges information into queue
+     * Parameters: in_filename - name of the input file
+     * Return: return true if loaded successfully, otherwise false
+     */  
     bool loadFromFileTwo(const char* in_filename);
     
+    /*
+     * Name: buildSpinning
+     * Description: help build a minimum spinning tree by linking all the
+     *              edges poped from our priority queue that do not create
+     *              a cycle
+     * Parameters: none
+     * return: string - string that has actors' name and their edges
+     */    
     string buildSpinning();
     
+    /*
+     * Name: find
+     * Description: find the root of the set a node is belonged to
+     * Parameters: node - the node we want to find the root of its set
+     * Return: ActorNode* - the root of the set the specific node belongs to
+     */    
     ActorNode* find(ActorNode* node);
  
+    /*
+     * Name: setUnion
+     * Description: reconstruct the whole tree by linking smaller subtree
+     *              to bigger subtree
+     * Parameters: node1 - first node
+     *             node2 = second node             
+     * return: void
+     */   
     void setUnion(ActorNode* node1, ActorNode* node2);
 
+   /*
+    * Name: bfs
+    * Description: find the shortest path using bfs method between 2 actors
+    * Parameters: one - first actor
+    * 	          two - second actor
+    * Return: string - the string that contains all the connecting info
+    */    
     string bfs(ActorNode* one, ActorNode* two);
     
+
+   /*
+    * Name: dijkstra
+    * Description: find the shortest path using dijkstra between 2 actors
+    *              with weighted edge
+    * Parameters: one - first actor
+    *             two - second actor
+    * return: string - the stirng that contains all the connecting info
+    */  
     string dijkstra(ActorNode* one, ActorNode* two);   
 };
 

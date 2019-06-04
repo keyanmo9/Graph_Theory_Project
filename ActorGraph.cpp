@@ -21,16 +21,12 @@
 #include <queue>
 #include <utility>
 #include <algorithm>
+const int TWO = 2;
+const int THREE = 3;
+const int YEAR = 2019;
 
 using namespace std;
 
-/**
- * Constructor of the Actor graph
- */ 
-//ActorGraph::ActorGraph(void) {}
-/*ActorGraph::~ActorGraph() {
-  deleteAll();
-}*/
 
 void ActorGraph::deleteAll() {
     for(auto i : seen) {           
@@ -42,12 +38,7 @@ void ActorGraph::deleteAll() {
 
 }
 
-/*  
-unordered_map<string, ActorNode*> seen; 
-unordered_map<string, ActorEdge*> seenMovies;
-*/
 int hold = -1;
-//vector<ActorNode*> recover;
 
 /** You can modify this method definition as you wish
  *
@@ -86,20 +77,20 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
         while (ss) {
             string next;
       
-            // get the next string before hitting a tab character and put it in 'next'
+        // get the next string before hitting a tab character
             if (!getline( ss, next, '\t' )) break;
 
             record.push_back( next );
         }
     
-        if (record.size() != 3) {
+        if (record.size() != THREE) {
             // we should have exactly 3 columns
             continue;
         }
 
         string actor_name(record[0]);
         string movie_title(record[1]);
-        int movie_year = stoi(record[2]);
+        int movie_year = stoi(record[TWO]);
         
         // TODO: we have an actor/movie relationship, now what?
         
@@ -120,13 +111,13 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
        // establish a new edge
        ActorEdge* newLink;
        // check if a movie already be seen before
-       auto getTwo = seenMovies.find(movie_title + "#@" + record[2]);
+       auto getTwo = seenMovies.find(movie_title + "#@" + record[TWO]);
        if(getTwo == seenMovies.end()){
-         newLink = new ActorEdge(movie_title+"#@"+record[2], movie_year);
-         seenMovies.insert({movie_title + "#@" + record[2], newLink});
+         newLink = new ActorEdge(movie_title+"#@"+record[TWO], movie_year);
+         seenMovies.insert({movie_title + "#@" + record[TWO], newLink});
        }
        else {
-         newLink = seenMovies[movie_title + "#@" + record[2]];
+         newLink = seenMovies[movie_title + "#@" + record[TWO]];
        }
        
        // make the connection
@@ -143,10 +134,13 @@ bool ActorGraph::loadFromFile(const char* in_filename, bool use_weighted_edges) 
     return true;
 }
 
+
 string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
+  
   ActorNode* left = nullptr;
   ActorNode* right = nullptr;
-  
+
+  // to find the actual nodes we are operating  
   unordered_map<string, ActorNode*>::iterator finding;
   if(seen.find(one->actorName)!=seen.end()) {
     finding = seen.find(one->actorName);
@@ -160,7 +154,7 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
   } else {
       return "";
     }
-
+  // if one of them is null, return
   if(left == nullptr || right == nullptr) {
     return "";
   }
@@ -172,13 +166,11 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
   }
   recover.clear();
 
-
   // make a queue
   queue<ActorNode*> myQueue;
   myQueue.push(left);
   left->visited = true;
   recover.push_back(left);
-
 
   // while queue is not empty, keep pushing
   while( !myQueue.empty() ) {
@@ -193,19 +185,19 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
 
     // otherwise, get the all connections in the current node
     vector<ActorEdge*> collect = now->connect;
-
-    //collect = now->connect;
+    // if connections is empty, return empty
     if(collect.size()==0) {
       string empty = "";
       return empty;
     }    
-
+    // iterate through all the edges
     vector<ActorEdge*>::iterator allEdge;
     for(unsigned int j = 0; j < collect.size(); j++) {
         ActorEdge* each = collect[j];
       // if not visited
       for(unsigned int m = 0; m < each->actors.size(); m++) {
         if( each->actors[m]->visited == false) {
+          // deal with the relationship
           each->actors[m]->visited = true;
           each->actors[m]->prev = now;
           each->actors[m]->movie = each->movieName;
@@ -237,7 +229,8 @@ string ActorGraph::bfs(ActorNode* one, ActorNode* two) {
 string ActorGraph::dijkstra(ActorNode* one, ActorNode* two) {
   ActorNode* left = nullptr;                                                    
   ActorNode* right = nullptr;
-
+  
+  // finding the actual nodes
   unordered_map<string, ActorNode*>::iterator find1 = seen.find(one->actorName);
   if(find1 != seen.end()) {
     left = find1->second;
@@ -280,7 +273,7 @@ string ActorGraph::dijkstra(ActorNode* one, ActorNode* two) {
           all != collect.end(); ++all) {
         ActorEdge * each = *all;
         // distance to w through v, c = v.dist + edgeWeight(v, w)
-        int dist = curr.second->distance + (1 + (2019 - each->year) );
+        int dist = curr.second->distance + (1 + (YEAR - each->year) );
         // if c is less than w.dist, set w.prev = v and w.dist = c
         for(unsigned int m = 0; m < each->actors.size(); m++) {
         if(dist < each->actors[m]->distance) {
@@ -333,14 +326,14 @@ bool ActorGraph::loadFromFileTwo(const char* in_filename) {
           if(!getline(ss, next, '\t')) break;
             record.push_back(next);
         }
-        if( record.size() != 3 ) {
+        if( record.size() != THREE ) {
           // we should have exactly 3 columns
           continue;
         }
 
         string actor_name(record[0]);                                           
         string movie_title(record[1]);                                          
-        int movie_year = stoi(record[2]);
+        int movie_year = stoi(record[TWO]);
 
         // check if actors already exist
         auto get = seen.find(actor_name);                                       
@@ -359,14 +352,14 @@ bool ActorGraph::loadFromFileTwo(const char* in_filename) {
         // establish a new edge
         ActorEdge* newLink;
        // check if a movie already be seen before
-        auto getTwo = seenMovies.find(movie_title + "#@" + record[2]);          
+        auto getTwo = seenMovies.find(movie_title + "#@" + record[TWO]);          
        if(getTwo == seenMovies.end()){                                          
-         newLink = new ActorEdge(movie_title+"#@"+record[2], movie_year);
-         seenMovies.insert({movie_title + "#@" + record[2], newLink});
+         newLink = new ActorEdge(movie_title+"#@"+record[TWO], movie_year);
+         seenMovies.insert({movie_title + "#@" + record[TWO], newLink});
          pq.push(newLink);          
        }                                                                        
        else {                                                                   
-         newLink = seenMovies[movie_title + "#@" + record[2]];                  
+         newLink = seenMovies[movie_title + "#@" + record[TWO]];                  
        }                                                                        
        // make the connection
        curr->connect.push_back(newLink);                                        
@@ -388,17 +381,13 @@ string ActorGraph::buildSpinning() {
   unsigned int weight = 0;
   string result;
   while(numEdges < seen.size() - 1){
-cout<<numEdges<<endl;
-cout<<seen.size()<<endl;
     int size = 1;
     // get the edge that has smallest weight
     ActorEdge* least = pq.top();
-cout<<"movie is now"+least->movieName<<endl;
     pq.pop();
 
     // randomly choose one actorNode, and make edge with all other actorNodes
     ActorNode* single = least->actors[0];
-    //single->prev = single;
     single->isRoot = true;
     // case that just has one actor in this movie, go to next edge
     if(least->actors.size()<=1) continue;
@@ -408,24 +397,20 @@ cout<<"movie is now"+least->movieName<<endl;
       ActorNode* root2 = find(least->actors[i]);
       if(root1 != root2 && numEdges < seen.size() - 1) {
         size++;
-        //least->actors[i]->prev = single;
-
+        // printing current edge
         result += '\n';
         result += "(" + single->actorName + ")<--[" + least->movieName + 
                   "]-->(" + least->actors[i]->actorName + ")";
         setUnion(root1, root2);
         numEdges++;
-        weight += 1+(2019-least->year);
+        weight += 1+(YEAR-least->year);
       }
     }
+    // update size of current subtree
     single->size = size;
     single->isRoot = false;
   }
- for (ActorNode* act: vactors) {
-    cout<<act->actorName<<endl;
-    if (act->prev)
-    cout<<act->prev->actorName<<endl<<endl;
- }
+  // printing information
   string numNode = to_string(seen.size());
   string numEdge = to_string(numEdges);
   string numWeight = to_string(weight);
@@ -439,15 +424,11 @@ cout<<"movie is now"+least->movieName<<endl;
 }
 
 ActorNode* ActorGraph::find(ActorNode* node) {
-//cout<<"inside is: "+node->prev->actorName<<endl;
-//cout<<"inside node is: "+node->actorName<<endl;
-  //ActorNode* real = seen.find(node->actorName)->second;
+  // if prev is null, means it does not belong to any set
   if(node->prev == nullptr) {
     return node;
   }
-  //if(real->isRoot) {
-  //  return real;
-  //}
+  // recursive call while prev is not null, path compression and find the root
   if(node->prev) {
     node->prev = find(node->prev);
   }
@@ -455,13 +436,15 @@ ActorNode* ActorGraph::find(ActorNode* node) {
 }
 
 void ActorGraph::setUnion(ActorNode* node1, ActorNode* node2) {
-
+  // find the root of the set node1 is in
   while(node1->prev != nullptr) {
     node1 = node1->prev;
   } 
+  // find the root of the set node2 is in
   while(node2->prev != nullptr) {
     node2 = node2->prev;
   }
+  // union by size, decide which root to be the new root of the whole tree
   if(node1->size < node2->size) {
     node1->prev = node2;
     node2->size = node2->size + node1->size;
@@ -470,17 +453,4 @@ void ActorGraph::setUnion(ActorNode* node1, ActorNode* node2) {
     node1->size = node1->size + node2->size;
  }
 
-/*
- if(find(node1) == find(node2)) {
-  return;
- } 
- if(find(node1) == nullptr || find(node2) == nullptr) {
-  return;
- } 
- 
- ActorNode* tmp1 = find(node1);
- ActorNode* tmp2 = find(node2);
- 
- if(tmp1->chil 
-*/ 
 }

@@ -17,6 +17,11 @@ using namespace std;
 
 class ActorNode;
 
+/*
+ * This class creats the edges between actor nodes.
+ * In each eage, it contains the information of movieName, movie's year, and
+ * a list of actors that have been connected.
+ */
 class ActorEdge {
 public:
   string movieName;
